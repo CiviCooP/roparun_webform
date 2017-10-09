@@ -1,0 +1,74 @@
+<?php
+
+/**
+ * Implements hook_webform_component_info_alter().
+ * 
+ * Change the default implementation of the Contact component.
+ */
+ function roparun_webform_webform_component_info() {
+ 	return array(
+    'roparun_team' => array(
+      'label' => t('Team en Teamdeelnemer'),
+      'description' => t('Laat een lijst van teams en teamdeelnemers zien. Deze worden dan weer gebruikt om de aangemaakte bijdrage aan het team/teamlid te koppelen'),
+      'features' => array(
+      	'csv' => FALSE,
+        'required' => FALSE,
+        'conditional' => FALSE,
+        'group' => TRUE,
+        'title_display' => FALSE,
+        'title_inline' => FALSE,
+        'description' => FALSE,
+        'wrapper_classes' => FALSE,
+      ),
+      'file' => 'includes/roparun_team_component.inc',
+    ),
+  );
+ }
+
+ function roparun_webform_civicrm_pre($op, $objectName, $id, &$params) {
+ 	if ($objectName == 'Contribution' && $op == 'create') {
+ 		if (isset($_POST['submitted']['team']['_roparun_team'])) {
+ 			$config = roparun_webform_config::singleton();
+ 			$roparun_team = filter_xss($_POST['submitted']['team']['_roparun_team']);
+			$params['custom_'.$config->getTowardsTeamCustomFieldId()] = $roparun_team;
+			if (isset($_POST['submitted']['team']['_roparun_team_member_'.$roparun_team])) {
+				$roparun_team_member = filter_xss($_POST['submitted']['team']['_roparun_team_member_'.$roparun_team]);
+				$params['custom_'.$config->getTowardsTeamMemberCustomFieldId()] = $roparun_team_member;
+			}	  
+ 		}
+ 	}
+ }
+ 
+ function roparun_webform_civicrm_post($op, $objectName, $id, &$objectRef) {
+ 	if ($objectName == 'Contribution' && $op == 'create') {
+ 		if (isset($_POST['submitted']['team']['_roparun_team'])) {
+ 			$config = roparun_webform_config::singleton();
+			
+			CRM_Core_DAO::executeQuery("DELETE FROM `".$config->getDonatedTowardsCustomGroupTableName()."` WHERE entity_id = %1", array(1=>array($id, 'Integer')));
+			$sql = "INSERT INTO `".$config->getDonatedTowardsCustomGroupTableName(). "`";
+			$columns = 'entity_id';
+			$params[1] = array($id, 'Integer');
+ 			$roparun_team = filter_xss($_POST['submitted']['team']['_roparun_team']);
+			$columns .= ', `'.$config->getTowardsTeamCustomFieldColumnName().'`';
+			$params[2] = array($roparun_team, 'Integer');
+			if (isset($_POST['submitted']['team']['_roparun_team_member_'.$roparun_team])) {
+				$roparun_team_member = filter_xss($_POST['submitted']['team']['_roparun_team_member_'.$roparun_team]);
+				$columns .= ', `'.$config->getTowardsTeamMemberCustomFieldColumnName().'`';
+				$params[3] = array($roparun_team_member, 'Integer');	
+			}
+			$sql .= ' ('.$columns.') VALUES (';
+			foreach($params as $param_num => $param) {
+				if ($param_num > 1) {
+					$sql .= ', ';
+				}
+				$sql .= '%'.$param_num;
+			}	  
+			$sql .= ')';
+			CRM_Core_DAO::executeQuery($sql, $params);
+ 		}
+ 	}
+ }
+
+function _roparun_load_teammembers($form, &$form_state) {
+  return $form['_roparun_team_member'];
+}
