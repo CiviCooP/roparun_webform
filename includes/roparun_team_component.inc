@@ -102,14 +102,13 @@ function _webform_render_roparun_team($component, $value = NULL, $filter = TRUE)
 		foreach($team_members['values'] as $team_member) {
 			$team_member_options[$team_member['id']] = $team_member['role'] . ': ' . $team_member['name'] . ' (' . $team_member['city'] . ')';
 		}
-		
 		$element_roparun['_roparun_team_member_'.$team_id] = array(
     '#type' => 'select',
     '#title' => $filter ? _webform_filter_xss($component['extra']['team_member_label']) : $component['extra']['team_member_label'],
     '#options' => $team_member_options,
     '#states' => array(
     	'visible' => array(
-    		'#edit-submitted-team-roparun-team' => array('value' => $team_id),
+    		'.webform-component--donatie--team---roparun-team select' => array('value' => $team_id),
 			)
 		),
   );

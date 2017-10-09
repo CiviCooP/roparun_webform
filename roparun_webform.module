@@ -25,48 +25,65 @@
   );
  }
 
- function roparun_webform_civicrm_pre($op, $objectName, $id, &$params) {
- 	if ($objectName == 'Contribution' && $op == 'create') {
- 		if (isset($_POST['submitted']['team']['_roparun_team'])) {
- 			$config = roparun_webform_config::singleton();
- 			$roparun_team = filter_xss($_POST['submitted']['team']['_roparun_team']);
-			$params['custom_'.$config->getTowardsTeamCustomFieldId()] = $roparun_team;
-			if (isset($_POST['submitted']['team']['_roparun_team_member_'.$roparun_team])) {
-				$roparun_team_member = filter_xss($_POST['submitted']['team']['_roparun_team_member_'.$roparun_team]);
-				$params['custom_'.$config->getTowardsTeamMemberCustomFieldId()] = $roparun_team_member;
-			}	  
- 		}
- 	}
- }
- 
  function roparun_webform_civicrm_post($op, $objectName, $id, &$objectRef) {
  	if ($objectName == 'Contribution' && $op == 'create') {
- 		if (isset($_POST['submitted']['team']['_roparun_team'])) {
- 			$config = roparun_webform_config::singleton();
-			
-			CRM_Core_DAO::executeQuery("DELETE FROM `".$config->getDonatedTowardsCustomGroupTableName()."` WHERE entity_id = %1", array(1=>array($id, 'Integer')));
-			$sql = "INSERT INTO `".$config->getDonatedTowardsCustomGroupTableName(). "`";
-			$columns = 'entity_id';
-			$params[1] = array($id, 'Integer');
- 			$roparun_team = filter_xss($_POST['submitted']['team']['_roparun_team']);
-			$columns .= ', `'.$config->getTowardsTeamCustomFieldColumnName().'`';
-			$params[2] = array($roparun_team, 'Integer');
-			if (isset($_POST['submitted']['team']['_roparun_team_member_'.$roparun_team])) {
-				$roparun_team_member = filter_xss($_POST['submitted']['team']['_roparun_team_member_'.$roparun_team]);
-				$columns .= ', `'.$config->getTowardsTeamMemberCustomFieldColumnName().'`';
-				$params[3] = array($roparun_team_member, 'Integer');	
-			}
-			$sql .= ' ('.$columns.') VALUES (';
-			foreach($params as $param_num => $param) {
-				if ($param_num > 1) {
-					$sql .= ', ';
+ 		if (isset($_POST['form_id']) && strpos($_POST['form_id'], 'webform_client_form_')===0 && isset($_POST['submitted'])) {
+ 			$nid = str_replace('webform_client_form_', '', $_POST['form_id']);
+			$node = node_load($nid);
+			$team_form_key = _roparun_retrieve_team_form_key($node);
+			if (!empty($team_form_key)) { 
+ 				$team = _roparun_retrieve_team($_POST['submitted'], $team_form_key);
+				if (!empty($team)) {
+					$config = roparun_webform_config::singleton();					
+					CRM_Core_DAO::executeQuery("DELETE FROM `".$config->getDonatedTowardsCustomGroupTableName()."` WHERE entity_id = %1", array(1=>array($id, 'Integer')));
+					$sql = "INSERT INTO `".$config->getDonatedTowardsCustomGroupTableName(). "`";
+					$columns = 'entity_id';
+					$params[1] = array($id, 'Integer');
+		 			$roparun_team = $team['_roparun_team'];
+					$columns .= ', `'.$config->getTowardsTeamCustomFieldColumnName().'`';
+					$params[2] = array($roparun_team, 'Integer');
+					if (isset($team['_roparun_team_member_'.$roparun_team]) && !empty($team['_roparun_team_member_'.$roparun_team])) {
+						$roparun_team_member = $team['_roparun_team_member_'.$roparun_team];
+						$columns .= ', `'.$config->getTowardsTeamMemberCustomFieldColumnName().'`';
+						$params[3] = array($roparun_team_member, 'Integer');	
+					}
+					$sql .= ' ('.$columns.') VALUES (';
+					foreach($params as $param_num => $param) {
+						if ($param_num > 1) {
+							$sql .= ', ';
+						}
+						$sql .= '%'.$param_num;
+					}	  
+					$sql .= ')';
+					CRM_Core_DAO::executeQuery($sql, $params);
 				}
-				$sql .= '%'.$param_num;
-			}	  
-			$sql .= ')';
-			CRM_Core_DAO::executeQuery($sql, $params);
+			}
+		}
+	}
+ }
+
+function _roparun_retrieve_team_form_key($node) {
+	foreach ($node->webform['components'] as $cid => $field) {
+		if ($field['type'] == 'roparun_team') {
+			return $field['form_key'];
+		}
+	}
+	return false;
+}
+ 
+ function _roparun_retrieve_team($values, $element_key) {
+ 		if (isset($values[$element_key]) && isset($values[$element_key]['_roparun_team'])) {
+ 			return $values[$element_key];
  		}
- 	}
+		foreach($values as $key => $value) {
+			if (is_array($value)) {
+				$return = _roparun_retrieve_team($value, $element_key);
+				if (!empty($return)) {
+					return $return;
+				}
+			}
+		}
+		return false;
  }
 
 function _roparun_load_teammembers($form, &$form_state) {
