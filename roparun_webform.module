@@ -118,3 +118,16 @@ function _roparun_retrieve_team_form_key($node) {
 function _roparun_load_teammembers($form, &$form_state) {
   return $form['_roparun_team_member'];
 }
+
+function roparun_webform_module_implements_alter(&$implementations, $hook) {
+  if ($hook == 'form_alter') {
+  	$group = $implementations['roparun_webform'];
+		$new_implementations['roparun_webform'] = $group;
+		foreach($implementations as $module => $group) {
+			if ($module != 'roparun_webform') {
+				$new_implementations[$module] = $group;
+			}
+		}
+		$implementations = $new_implementations;
+  }
+}
