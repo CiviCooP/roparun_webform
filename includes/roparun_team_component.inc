@@ -75,7 +75,6 @@ function _webform_render_roparun_team($component, $value = NULL, $filter = TRUE)
 	foreach($teams['values'] as $team) {
 		$team_options[$team['id']] = $team['teamnr'] .' - '.$team['name'];
 	}
-	sort($team_options);
 	
 	
 	$element = array(
