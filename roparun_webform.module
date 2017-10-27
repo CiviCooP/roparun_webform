@@ -1,5 +1,75 @@
 <?php
 
+function roparun_webform_webform_validation_validators() {
+	$validators = array(
+    'roparun_min_value' => array(
+      'name' => t('Minimum value'),
+      'component_types' => array(
+        'hidden',
+        'number',
+        'textfield',
+      ),
+      'custom_error' => TRUE,
+      'custom_data' => array(
+        'label' => t('Specify the minimum amount'),
+        'description' => '',
+        'required' => FALSE,
+      ),
+      'description' => t('Verifies that user-entered values are numeric and greater than the value provided.'),
+    ),
+    'roparun_confirmation' => array(
+      'name' => t('Equal values with custom error message'),
+      'custom_error' => TRUE,
+      'component_types' => array(
+        'date',
+        'email',
+        'hidden',
+        'number',
+        'select',
+        'textarea',
+        'textfield',
+        'time',
+        'boolean',
+      ),
+      'min_components' => 2,
+      'description' => t('Verifies that all specified components contain equal values. If all components are of type email, they will get case-insensitive comparison.'),
+    ),
+  );
+	return $validators;
+}
+
+function roparun_webform_webform_validation_validate($validator_name, $items, $components, $rule) {
+	switch ($validator_name) {
+		case 'roparun_min_value':
+			$min_value = (float) $rule['data'];
+      foreach ($items as $key => $val) {
+        // First check if the value is numeric.
+        if (is_numeric($val)) {
+          $val = (float) $val;
+        }
+        else {
+        	$errors[$key] = _webform_validation_i18n_error_message($rule);
+          continue;
+        }
+
+        if ($val < $min_value) {
+           $errors[$key] = _webform_validation_i18n_error_message($rule);
+				}
+			}
+			break;
+		case 'roparun_confirmation':
+			$first_entry_key = key($items);
+      $first_entry = array_shift($items);
+      foreach ($items as $key => $val) {
+        if ($val !== $first_entry) {
+          $errors[$key] = _webform_validation_i18n_error_message($rule);
+        }
+      }
+      return $errors;
+	}
+	return $errors;
+}
+
 function roparun_webform_form_alter(&$form, &$form_state, $form_id) {
 	if (strpos($form_id, 'webform_client_form_') !== FALSE && !empty($form['#node']->webform_civicrm)) {
 		// Add a validation rule to convert contribution amount to a float.
