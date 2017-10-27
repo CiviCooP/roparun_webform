@@ -73,7 +73,7 @@ function _webform_render_roparun_team($component, $value = NULL, $filter = TRUE)
 	));
 	$team_options = array('' => $component['extra']['empty_team_option']);
 	foreach($teams['values'] as $team) {
-		$team_options[$team['id']] = $team['name'];
+		$team_options[$team['id']] = $team['teamnr'] .' - '.$team['name'];
 	}
 	
 	
