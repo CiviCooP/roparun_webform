@@ -138,13 +138,19 @@ function _roparun_check_values_for_contribution_amount(&$values) {
 					$sql = "INSERT INTO `".$config->getDonatedTowardsCustomGroupTableName(). "`";
 					$columns = 'entity_id';
 					$params[1] = array($id, 'Integer');
+					$paramCount = 2;
 		 			$roparun_team = $team['_roparun_team'];
-					$columns .= ', `'.$config->getTowardsTeamCustomFieldColumnName().'`';
-					$params[2] = array($roparun_team, 'Integer');
+		 			if (!empty($roparun_team)) {
+						$columns .= ', `'.$config->getTowardsTeamCustomFieldColumnName().'`';
+						$params[$paramCount] = array($roparun_team, 'Integer');
+						$paramCount++;
+					}
 					if (isset($team['_roparun_team_member_'.$roparun_team]) && !empty($team['_roparun_team_member_'.$roparun_team])) {
 						$roparun_team_member = $team['_roparun_team_member_'.$roparun_team];
-						$columns .= ', `'.$config->getTowardsTeamMemberCustomFieldColumnName().'`';
-						$params[3] = array($roparun_team_member, 'Integer');	
+						if (!empty($roparun_team_member)) {
+							$columns .= ', `'.$config->getTowardsTeamMemberCustomFieldColumnName().'`';
+							$params[$paramCount] = array($roparun_team_member, 'Integer');
+						}	
 					}
 					$sql .= ' ('.$columns.') VALUES (';
 					foreach($params as $param_num => $param) {
