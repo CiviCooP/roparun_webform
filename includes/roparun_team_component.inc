@@ -63,11 +63,19 @@ function _webform_edit_roparun_team($component) {
   return $form;
 }
 
+function _webform_roparun_team_from_url() {
+	if (isset($_GET['team']) && is_numeric($_GET['team'])) {
+		return $_GET['team'];
+	}
+	return null;
+}
+
 /**
  * Implements _webform_render_component().
  */
 function _webform_render_roparun_team($component, $value = NULL, $filter = TRUE) {
 	civicrm_initialize();
+	$default_team_id = _webform_roparun_team_from_url();
 	$teams = civicrm_api3('RoparunTeam', 'get', array(
 		'options' => array('limit' => 0),
 	));
@@ -86,6 +94,7 @@ function _webform_render_roparun_team($component, $value = NULL, $filter = TRUE)
     '#type' => 'select',
     '#title' => $filter ? _webform_filter_xss($component['extra']['team_label']) : $component['extra']['team_label'],
     '#options' => $team_options,
+    '#default_value' => $default_team_id,
     '#theme_wrappers' => array('webform_element'),
   );
 	
