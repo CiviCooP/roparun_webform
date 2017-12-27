@@ -116,11 +116,12 @@ function _webform_render_roparun_team($component, $value = NULL, $filter = TRUE)
     '#type' => 'select',
     '#title' => $filter ? _webform_filter_xss($component['extra']['team_member_label']) : $component['extra']['team_member_label'],
     '#options' => $team_member_options,
-    '#states' => array(
+    '#attributes' => array('class' => array('_roparun_teammember_select')),
+    /*'#states' => array(
     	'visible' => array(
     		'.webform-component--donatie--team---roparun-team select' => array('value' => $team_id),
 			)
-		),
+		),*/
   );
 	}
 	
@@ -130,6 +131,6 @@ function _webform_render_roparun_team($component, $value = NULL, $filter = TRUE)
   
   //$element['#markup'] = $element_roparun_team_rendered . $element_roparun_team_member_rendered;
   //$element['#markup'] =  element($element_roparun);
-	
+	drupal_add_js(drupal_get_path('module', 'roparun_webform') .'/team_component.js');
   return $element_roparun;
 }
