@@ -1,7 +1,7 @@
 name = Roparun Webform customisation
 description = Customisations for the webform civicrm integration specific for Roparun.
 core = 7.x
-version = 7.x-1.2
+version = 7.x-1.3
 package = Roparun
 dependencies[] = webform_civicrm (>=4.18)
 
