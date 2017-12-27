@@ -178,7 +178,7 @@ function _roparun_retrieve_team_form_key($node) {
  
  function _roparun_retrieve_team($values, $element_key) {
  		if (isset($values[$element_key]) && isset($values[$element_key]['_roparun_team'])) {
- 			return $values[$element_key];
+ 			return str_replace("s_", "", $values[$element_key]);
  		}
 		foreach($values as $key => $value) {
 			if (is_array($value)) {

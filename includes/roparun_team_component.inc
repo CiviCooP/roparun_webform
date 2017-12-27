@@ -76,12 +76,16 @@ function _webform_roparun_team_from_url() {
 function _webform_render_roparun_team($component, $value = NULL, $filter = TRUE) {
 	civicrm_initialize();
 	$default_team_id = _webform_roparun_team_from_url();
+	if (!empty($default_team_id)) {
+		$default_team_id .= 's_'.$default_team_id;
+	}
 	$teams = civicrm_api3('RoparunTeam', 'get', array(
 		'options' => array('limit' => 0),
 	));
 	$team_options = array('' => $component['extra']['empty_team_option']);
 	foreach($teams['values'] as $team) {
-		$team_options[$team['id']] = $team['teamnr'] .' - '.$team['name'];
+		$string_team_id = "s_" . $team['id'];
+		$team_options[$string_team_id] = $team['teamnr'] .' - '.$team['name'];
 	}
 	
 	
@@ -98,7 +102,8 @@ function _webform_render_roparun_team($component, $value = NULL, $filter = TRUE)
     '#theme_wrappers' => array('webform_element'),
   );
 	
-	foreach($team_options as $team_id => $team_name) {
+	foreach($team_options as $string_team_id => $team_name) {
+		$team_id = str_replace("s_", "", $string_team_id);
 		if (empty($team_id)) {
 			continue;
 		}
@@ -118,7 +123,7 @@ function _webform_render_roparun_team($component, $value = NULL, $filter = TRUE)
     '#options' => $team_member_options,
     '#states' => array(
     	'visible' => array(
-    		'.webform-component--donatie--team---roparun-team select' => array('value' => $team_id),
+    		'.webform-component--donatie--team---roparun-team select' => array('value' => $string_team_id),
 			)
 		),
   );
