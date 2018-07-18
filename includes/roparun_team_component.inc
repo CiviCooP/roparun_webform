@@ -110,7 +110,16 @@ function _webform_render_roparun_team($component, $value = NULL, $filter = TRUE)
 		));
 		$team_member_options = array('' => $component['extra']['empty_team_member_option']);
 		foreach($team_members['values'] as $team_member) {
-			$team_member_options[$team_member['id']] = $team_member['name'] . ' (' . $team_member['city'] . ') - '.$team_member['role'];
+		  $roles = array();
+		  if ($team_member['is_team_captain'] ) {
+        $roles[] = t('Teamcaptain');
+        if ($team_member['role'] != 'Teamcaptain') {
+          $roles[] = $team_member['role'];
+        }
+      } else {
+        $roles[] = $team_member['role'];
+      }
+			$team_member_options[$team_member['id']] = $team_member['name'] . ' (' . $team_member['city'] . ') - '.implode(', ', $roles);
 		}
 		$element_roparun['_roparun_team_member_'.$team_id] = array(
     '#type' => 'select',
