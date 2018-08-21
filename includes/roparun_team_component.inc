@@ -105,7 +105,7 @@ function _webform_render_roparun_team($component, $value = NULL, $filter = TRUE)
 		
 		$team_members = civicrm_api3('RoparunTeam', 'getmembers', array(
 			'team_id' => $team_id,
-			'only_show_donations_enabled' => 1,
+			'include_team_members_with_donations' => 0,
 			'options' => array('limit' => 0),
 		));
 		$team_member_options = array('' => $component['extra']['empty_team_member_option']);
